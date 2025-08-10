@@ -3,6 +3,7 @@ package es.cic.curso25.proy015.service;
 import es.cic.curso25.proy015.model.AsignacionPlaza;
 import es.cic.curso25.proy015.repository.AsignacionPlazaRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -49,7 +50,6 @@ public class AsignacionPlazaService {
             throw new IllegalStateException("El vehículo ya tiene una plaza asignada vigente");
         }
 
-        // por si no viene la fecha
         if (asignacion.getDesde() == null) {
             asignacion.setDesde(LocalDateTime.now());
         }
@@ -59,13 +59,20 @@ public class AsignacionPlazaService {
     }
 
     /** Cierra una asignación (deja de ser vigente) */
+    @Transactional
     public Optional<AsignacionPlaza> cerrarAsignacion(Long id) {
-        return asigRepo.findById(id).map(a -> {
-            if (a.getHasta() == null) {
-                a.setHasta(LocalDateTime.now());
-                return asigRepo.save(a);
-            }
-            return a; // ya estaba cerrada
-        });
+        Optional<AsignacionPlaza> opt = asigRepo.findById(id);
+
+        if (opt.isEmpty()) {
+            return Optional.empty();
+        }
+
+        AsignacionPlaza asignacion = opt.get();
+        if (asignacion.getHasta() == null) {
+            asignacion.setHasta(LocalDateTime.now());
+            asignacion = asigRepo.save(asignacion);
+        }
+
+        return Optional.of(asignacion);
     }
 }
