@@ -2,6 +2,7 @@ package es.cic.curso25.proy015.controller;
 
 import es.cic.curso25.proy015.model.Vehiculo;
 import es.cic.curso25.proy015.service.VehiculoService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,27 +24,19 @@ public class VehiculoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Vehiculo> obtenerVehiculo(@PathVariable Long id) {
-        return vehiculoService.obtenerVehiculo(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public Vehiculo obtenerVehiculo(@PathVariable Long id) {
+        return vehiculoService.obtenerVehiculo(id);
     }
 
     @PostMapping
-    public ResponseEntity<?> crearVehiculo(@RequestBody Vehiculo vehiculo) {
-        try {
-            Vehiculo creado = vehiculoService.crearVehiculo(vehiculo);
-            return ResponseEntity.status(201).body(creado);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(409).body(e.getMessage());
-        }
+    public ResponseEntity<Vehiculo> crearVehiculo(@RequestBody Vehiculo vehiculo) {
+        Vehiculo creado = vehiculoService.crearVehiculo(vehiculo);
+        return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> bajaVehiculo(@PathVariable Long id) {
-        boolean dadoDeBaja = vehiculoService.darDeBajaVehiculo(id);
-        return dadoDeBaja ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    public ResponseEntity<Void> bajaVehiculo(@PathVariable Long id) {
+        vehiculoService.darDeBajaVehiculo(id);
+        return ResponseEntity.noContent().build();
     }
 }

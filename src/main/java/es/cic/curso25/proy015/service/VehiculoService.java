@@ -2,12 +2,15 @@ package es.cic.curso25.proy015.service;
 
 import es.cic.curso25.proy015.enums.EstadoVehiculo;
 import es.cic.curso25.proy015.enums.VehiculoTipo;
+import es.cic.curso25.proy015.exception.RecursoNoEncontradoException;
+import es.cic.curso25.proy015.exception.VehiculoDuplicadoException;
+import es.cic.curso25.proy015.exception.VehiculoNoCompatibleException;
+import es.cic.curso25.proy015.exception.PlazaDuplicadaException; // puedes crear una VehiculoDuplicadoException si quieres
 import es.cic.curso25.proy015.model.Vehiculo;
 import es.cic.curso25.proy015.repository.VehiculoRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class VehiculoService {
@@ -22,8 +25,9 @@ public class VehiculoService {
         return vehiculoRepo.findAll();
     }
 
-    public Optional<Vehiculo> obtenerVehiculo(Long id) {
-        return vehiculoRepo.findById(id);
+    public Vehiculo obtenerVehiculo(Long id) {
+        return vehiculoRepo.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Vehículo", id));
     }
 
     public Vehiculo crearVehiculo(Vehiculo vehiculo) {
@@ -31,24 +35,20 @@ public class VehiculoService {
                 (vehiculo.getTipo() != VehiculoTipo.COCHE &&
                         vehiculo.getTipo() != VehiculoTipo.CARAVANA &&
                         vehiculo.getTipo() != VehiculoTipo.MOTO)) {
-            throw new IllegalArgumentException("Tipo de vehículo no permitido");
+            throw new VehiculoNoCompatibleException();
         }
 
         if (vehiculoRepo.existsByMatricula(vehiculo.getMatricula())) {
-            throw new IllegalStateException("La matrícula ya está registrada");
+            throw new VehiculoDuplicadoException(vehiculo.getMatricula());
         }
 
         vehiculo.setEstado(EstadoVehiculo.ALTA);
         return vehiculoRepo.save(vehiculo);
     }
 
-    public boolean darDeBajaVehiculo(Long id) {
-        return vehiculoRepo.findById(id)
-                .map(v -> {
-                    v.setEstado(EstadoVehiculo.BAJA);
-                    vehiculoRepo.save(v);
-                    return true;
-                })
-                .orElse(false);
+    public void darDeBajaVehiculo(Long id) {
+        Vehiculo vehiculo = obtenerVehiculo(id); // lanza RecursoNoEncontradoException si no existe
+        vehiculo.setEstado(EstadoVehiculo.BAJA);
+        vehiculoRepo.save(vehiculo);
     }
 }

@@ -9,11 +9,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface MultaRepository extends JpaRepository<Multa, Long> {
+
+    //Listar multas pendientes de un vehículo.
     List<Multa> findByVehiculoIdAndLiquidadaFalse(Long vehiculoId);
 
+    //Calcular el importe total pendiente.
     @Query("select coalesce(sum(m.importe), 0) from Multa m where m.vehiculo.id = :vehiculoId and m.liquidada = false")
     BigDecimal sumImportePendienteByVehiculo(Long vehiculoId);
 
+    //Marcar todas las multas pendientes como liquidadas de una sola vez.
     @Modifying
     @Transactional
     @Query("update Multa m set m.liquidada = true where m.vehiculo.id = :vehiculoId and m.liquidada = false")

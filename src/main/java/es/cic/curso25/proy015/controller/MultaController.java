@@ -2,6 +2,7 @@ package es.cic.curso25.proy015.controller;
 
 import es.cic.curso25.proy015.model.Multa;
 import es.cic.curso25.proy015.service.MultaService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,22 +29,13 @@ public class MultaController {
     }
 
     @PostMapping
-    public ResponseEntity<?> crearMulta(@RequestBody Multa multa) {
-        try {
-            Multa creada = multaService.crearMulta(multa);
-            return ResponseEntity.status(201).body(creada);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<Multa> crearMulta(@RequestBody Multa multa) {
+        Multa creada = multaService.crearMulta(multa);
+        return ResponseEntity.status(HttpStatus.CREATED).body(creada);
     }
 
     @PutMapping("/vehiculo/{vehiculoId}/liquidar")
-    public ResponseEntity<?> liquidarMultasVehiculo(@PathVariable Long vehiculoId) {
-        try {
-            MultaService.ResultadoLiquidacion r = multaService.liquidarMultasVehiculo(vehiculoId);
-            return ResponseEntity.ok(r); // { "numeroMultas": X, "total": Y }
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public MultaService.ResultadoLiquidacion liquidarMultasVehiculo(@PathVariable Long vehiculoId) {
+        return multaService.liquidarMultasVehiculo(vehiculoId);
     }
 }

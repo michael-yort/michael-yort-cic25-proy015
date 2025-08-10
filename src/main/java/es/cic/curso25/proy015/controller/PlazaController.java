@@ -2,11 +2,11 @@ package es.cic.curso25.proy015.controller;
 
 import es.cic.curso25.proy015.model.Plaza;
 import es.cic.curso25.proy015.service.PlazaService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/plazas")
@@ -24,33 +24,18 @@ public class PlazaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Plaza> obtenerPlaza(@PathVariable Long id) {
-        return plazaService.obtenerPlaza(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public Plaza obtenerPlaza(@PathVariable Long id) {
+        return plazaService.obtenerPlaza(id);
     }
 
     @PostMapping
-    public ResponseEntity<?> crearPlaza(@RequestBody Plaza plaza) {
-        try {
-            Plaza creada = plazaService.crearPlaza(plaza);
-            return ResponseEntity.status(201).body(creada);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(409).body(e.getMessage());
-        }
+    public ResponseEntity<Plaza> crearPlaza(@RequestBody Plaza plaza) {
+        Plaza creada = plazaService.crearPlaza(plaza);
+        return ResponseEntity.status(HttpStatus.CREATED).body(creada);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> actualizarPlaza(@PathVariable Long id, @RequestBody Plaza datos) {
-        Optional<Plaza> plazaActualizada = plazaService.actualizarPlaza(id, datos);
-
-        if (plazaActualizada.isPresent()) {
-            return ResponseEntity.ok(plazaActualizada.get());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public Plaza actualizarPlaza(@PathVariable Long id, @RequestBody Plaza datos) {
+        return plazaService.actualizarPlaza(id, datos);
     }
-
 }

@@ -2,10 +2,12 @@ package es.cic.curso25.proy015.controller;
 
 import es.cic.curso25.proy015.model.AsignacionPlaza;
 import es.cic.curso25.proy015.service.AsignacionPlazaService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/asignaciones")
@@ -29,27 +31,25 @@ public class AsignacionPlazaController {
 
     @GetMapping("/vehiculo/{vehiculoId}")
     public ResponseEntity<AsignacionPlaza> asignacionVigenteVehiculo(@PathVariable Long vehiculoId) {
-        return asignacionService.asignacionVigenteVehiculo(vehiculoId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        Optional<AsignacionPlaza> opt = asignacionService.asignacionVigenteVehiculo(vehiculoId);
+        if (opt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(opt.get());
     }
 
     @PostMapping
-    public ResponseEntity<?> crearAsignacion(@RequestBody AsignacionPlaza asignacion) {
-        try {
-            AsignacionPlaza creada = asignacionService.crearAsignacion(asignacion);
-            return ResponseEntity.status(201).body(creada);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(409).body(e.getMessage());
-        }
+    public ResponseEntity<AsignacionPlaza> crearAsignacion(@RequestBody AsignacionPlaza asignacion) {
+        AsignacionPlaza creada = asignacionService.crearAsignacion(asignacion);
+        return ResponseEntity.status(HttpStatus.CREATED).body(creada);
     }
 
     @PutMapping("/{id}/cerrar")
-    public ResponseEntity<?> cerrarAsignacion(@PathVariable Long id) {
-        return asignacionService.cerrarAsignacion(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<AsignacionPlaza> cerrarAsignacion(@PathVariable Long id) {
+        Optional<AsignacionPlaza> opt = asignacionService.cerrarAsignacion(id);
+        if (opt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(opt.get());
     }
 }

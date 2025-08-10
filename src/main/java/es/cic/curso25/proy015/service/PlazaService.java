@@ -1,11 +1,12 @@
 package es.cic.curso25.proy015.service;
 
+import es.cic.curso25.proy015.exception.PlazaDuplicadaException;
+import es.cic.curso25.proy015.exception.RecursoNoEncontradoException;
 import es.cic.curso25.proy015.model.Plaza;
 import es.cic.curso25.proy015.repository.PlazaRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class PlazaService {
@@ -20,8 +21,9 @@ public class PlazaService {
         return plazaRepo.findAll();
     }
 
-    public Optional<Plaza> obtenerPlaza(Long id) {
-        return plazaRepo.findById(id);
+    public Plaza obtenerPlaza(Long id) {
+        return plazaRepo.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Plaza", id));
     }
 
     public Plaza crearPlaza(Plaza plaza) {
@@ -31,27 +33,29 @@ public class PlazaService {
         if (plaza.getTipo() == null) {
             throw new IllegalArgumentException("El tipo de plaza es obligatorio");
         }
-        // Requiere method existsByCodigo en el repo (lo añado abajo)
         if (plazaRepo.existsByCodigo(plaza.getCodigo())) {
-            throw new IllegalStateException("El código de plaza ya existe");
+            throw new PlazaDuplicadaException(plaza.getCodigo());
         }
         return plazaRepo.save(plaza);
     }
 
-    public Optional<Plaza> actualizarPlaza(Long id, Plaza datos) {
-        return plazaRepo.findById(id).map(p -> {
-            if (datos.getCodigo() != null && !datos.getCodigo().isBlank()
-                    && !datos.getCodigo().equals(p.getCodigo())) {
-                if (plazaRepo.existsByCodigo(datos.getCodigo())) {
-                    throw new IllegalStateException("El código de plaza ya existe");
-                }
-                p.setCodigo(datos.getCodigo());
+    public Plaza actualizarPlaza(Long id, Plaza datos) {
+        Plaza existente = obtenerPlaza(id); // lanza RecursoNoEncontradoException si no existe
+
+        if (datos.getCodigo() != null && !datos.getCodigo().isBlank()
+                && !datos.getCodigo().equals(existente.getCodigo())) {
+            if (plazaRepo.existsByCodigo(datos.getCodigo())) {
+                throw new PlazaDuplicadaException(datos.getCodigo());
             }
-            if (datos.getTipo() != null) {
-                p.setTipo(datos.getTipo());
-            }
-            p.setActiva(datos.isActiva());
-            return plazaRepo.save(p);
-        });
+            existente.setCodigo(datos.getCodigo());
+        }
+
+        if (datos.getTipo() != null) {
+            existente.setTipo(datos.getTipo());
+        }
+
+        existente.setActiva(datos.isActiva());
+
+        return plazaRepo.save(existente);
     }
 }

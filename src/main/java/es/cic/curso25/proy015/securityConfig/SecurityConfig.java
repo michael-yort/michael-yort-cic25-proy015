@@ -17,4 +17,18 @@ public class SecurityConfig {
                 );
         return http.build();
     }
+
+
+    //  @Bean
+    // public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    //     http
+    //             .csrf(csrf -> csrf.disable()) // Desactiva CSRF (útil para tests y APIs)
+    //             .authorizeHttpRequests(auth -> auth
+    //                     .requestMatchers("/public/**", "/health").permitAll()
+    //                     .requestMatchers("/coche/**").hasRole("USER")
+    //                     .anyRequest().authenticated())
+    //             .httpBasic(Customizer.withDefaults()); // Usa autenticación básica
+
+    //     return http.build();
+    // }
 }
