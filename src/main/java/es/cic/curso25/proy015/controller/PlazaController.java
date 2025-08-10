@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/plazas")
@@ -43,12 +44,13 @@ public class PlazaController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> actualizarPlaza(@PathVariable Long id, @RequestBody Plaza datos) {
-        try {
-            return plazaService.actualizarPlaza(id, datos)
-                    .map(ResponseEntity::ok)
-                    .orElse(ResponseEntity.notFound().build());
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(409).body(e.getMessage());
+        Optional<Plaza> plazaActualizada = plazaService.actualizarPlaza(id, datos);
+
+        if (plazaActualizada.isPresent()) {
+            return ResponseEntity.ok(plazaActualizada.get());
+        } else {
+            return ResponseEntity.notFound().build();
         }
     }
+
 }
